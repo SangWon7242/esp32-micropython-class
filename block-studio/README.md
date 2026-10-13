@@ -68,3 +68,26 @@ Keyestudio의 **교수학습 흐름과 하드웨어 주제**를 참고하되, �
 ## 개발 상태
 
 MVP이며 상용 학습 서비스가 아닙니다. 실행 화면 / 수업 흐름과 각 단계 자동 검사는 실물 연결 전 반드시 수동 QA 하십시오.
+
+---
+
+## v0.5: 실기 수업 준비 / 브라우저 테스트
+
+- MicroPython raw-paste flow-control 방식 USB 코드 전송. `▶ 실행`의 ACK는 **코드 수신 응답**이지 LED/센서 실물 성공 판정이 아닙니다. 자동 검사와 학생 실물 체크는 별도로 기록합니다.
+- `■ 중지 / 복구`, 전송 오류 및 포트 해제 처리. **실제 Keyestudio 장비 검증 전까지 베타** 기능입니다.
+- `/teacher/[chapterId]`: 강사용 준비물, 연결표, 질문, 흔한 오류 카드. 학생용 `/learn/[chapterId]/wiring`에는 자체 제작 배선 안내가 표시됩니다.
+- 학생의 관찰 메모는 브라우저에 저장되며 서버로 전송하지 않습니다.
+- 자동 테스트: `npm test` (코드·시리얼 가상 장치), `npm run build` (Next.js 빌드), `npm run test:e2e` (Playwright Chromium). 브라우저 테스트 전 `npx playwright install chromium` 필요.
+- 실제 보드 점검 절차: [HARDWARE_QA.md](./HARDWARE_QA.md).
+- Chrome/Edge PC, `https://` 또는 `localhost`, MicroPython raw-paste 펌웨어, Keyestudio ESP32 PLUS 연결이 필요합니다. 다른 프로그램이 같은 USB 포트를 사용하면 접속할 수 없습니다.
+- 외부 교육용 LED의 경우 KS5020 Hello LED 기준 **GPIO26 + 220Ω 저항**. 다른 챕터의 GPIO는 자체 실습용 가정이므로 부품과 연결을 교사가 재검증해야 합니다.
+
+브라우저 테스트 예시:
+
+```bash
+npm install
+npm test
+npm run build
+npx playwright install chromium
+npm run test:e2e
+```
