@@ -1,6 +1,6 @@
 // ESP32 Block Studio: conservative MicroPython -> block statement parser.
 // Only documented, reversible subset; never guesses at arbitrary Python.
-export const DEFAULT_CODE = `from machine import Pin\nimport time\n\nwhile True:\n    Pin(2, Pin.OUT).value(1)\n    time.sleep_ms(500)\n    Pin(2, Pin.OUT).value(0)\n    time.sleep_ms(500)\n`;
+export const DEFAULT_CODE = `from machine import Pin\nimport time\n\nwhile True:\n    Pin(26, Pin.OUT).value(1)\n    time.sleep_ms(500)\n    Pin(26, Pin.OUT).value(0)\n    time.sleep_ms(500)\n`;
 
 function fail(line, reason) { throw new Error(`${line}행: ${reason}`); }
 function nrange(value, min, max, line, label) {
