@@ -1,4 +1,5 @@
-import { LESSONS, KEYESTUDIO_URL } from './lessons';
+import { LESSONS, KEYESTUDIO_URL } from './lessons.js';
+import {getMicroMissions, getMicroMission} from './micro-missions.mjs';
 
 export { KEYESTUDIO_URL };
 export const STAGES = [
@@ -15,30 +16,37 @@ export const COURSES = [
 export const getChapter = id => LESSONS.find(item => item.id === id);
 export const getCourse = id => COURSES.find(item => item.id === id);
 export const getCourseOfChapter = id => COURSES.find(item => item.lessons.includes(id));
-export const allStages = COURSES.flatMap(course => course.lessons.flatMap(id => STAGES.map(stage => `${id}:${stage.id}`)));
-export function nextStage(chapterId, stageId) {
-  const chapter = getChapter(chapterId), course = getCourseOfChapter(chapterId);
-  if (!chapter || !course) return null;
-  const ix = STAGES.findIndex(s=>s.id===stageId);
-  if(ix<STAGES.length-1) return {chapterId, stageId: STAGES[ix+1].id};
-  const chapters = COURSES.flatMap(c=>c.lessons);
-  const nextId = chapters[chapters.indexOf(chapterId)+1];
-  return nextId ? {chapterId:nextId, stageId:'concept'} : null;
+export {getMicroMission};
+export const getStagesForChapter = chapterId => [STAGES[0], STAGES[1], ...getMicroMissions(chapterId).map((mission,index)=>({id:mission.id,title:mission.title,short:mission.short,icon:String(index+3).padStart(2,'0'),description:mission.goal,micro:true})), STAGES[4]];
+export const allStages = COURSES.flatMap(course => course.lessons.flatMap(id => getStagesForChapter(id).map(stage => `${id}:${stage.id}`)));
+const order = COURSES.flatMap(course=>course.lessons.flatMap(chapterId=>getStagesForChapter(chapterId).map(stage=>({chapterId,stageId:stage.id}))));
+const findIndex = (chapterId,stageId)=>order.findIndex(item=>item.chapterId===chapterId && item.stageId===stageId);
+// Preserve bookmarked v0.3 routes even though the new course map shows micro missions.
+const legacyOrder=COURSES.flatMap(course=>course.lessons.flatMap(chapterId=>STAGES.map(stage=>({chapterId,stageId:stage.id}))));
+export function nextStage(chapterId,stageId) {
+  const seq=stageId==='build'||stageId==='challenge'?legacyOrder:order;
+  const idx=seq.findIndex(item=>item.chapterId===chapterId&&item.stageId===stageId);
+  return idx<0?null:seq[idx+1]||null;
 }
-export function previousStage(chapterId, stageId) {
-  const ix=STAGES.findIndex(s=>s.id===stageId);
-  if(ix>0) return {chapterId,stageId:STAGES[ix-1].id};
-  const chapters=COURSES.flatMap(c=>c.lessons);
-  const prev=chapters[chapters.indexOf(chapterId)-1];
-  return prev ? {chapterId:prev,stageId:'reflect'} : null;
+export function previousStage(chapterId,stageId) {
+  const seq=stageId==='build'||stageId==='challenge'?legacyOrder:order;
+  const idx=seq.findIndex(item=>item.chapterId===chapterId&&item.stageId===stageId);
+  return idx<=0?null:seq[idx-1];
 }
-export function isUnlocked(chapterId, stageId, done) {
-  const key = `${chapterId}:${stageId}`;
-  const index=allStages.indexOf(key);
-  return index===0 || (index>0 && !!done[allStages[index-1]]) || !!done[key];
+export function isUnlocked(chapterId,stageId,done) {
+  const key=`${chapterId}:${stageId}`;
+  if(done[key])return true;
+  if(stageId==='reflect'&&done[`${chapterId}:challenge`])return true; // v0.3 completion compatibility
+  // Old bookmarked practice routes remain accessible only to learners who reached them.
+  if(stageId==='build'||stageId==='challenge') {
+    const idx=legacyOrder.findIndex(x=>x.chapterId===chapterId&&x.stageId===stageId);
+    return idx>0 && Boolean(done[`${legacyOrder[idx-1].chapterId}:${legacyOrder[idx-1].stageId}`]);
+  }
+  const index=findIndex(chapterId,stageId);
+  return index===0 || (index>0 && !!done[`${order[index-1].chapterId}:${order[index-1].stageId}`]);
 }
 export function courseProgress(course, done) {
-  const keys=course.lessons.flatMap(id=>STAGES.map(s=>`${id}:${s.id}`));
+  const keys=course.lessons.flatMap(id=>getStagesForChapter(id).map(s=>`${id}:${s.id}`));
   return {finished: keys.filter(k=>done[k]).length, total:keys.length};
 }
 export const QUESTION_OPTIONS = {
