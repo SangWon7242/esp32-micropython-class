@@ -7,7 +7,7 @@ export function validateChallenge(code,id) {
   const has=(type,test=()=>true)=>nodes.some(n=>n.type===type&&test(n.fields||{}));
   const every=(type,pins)=>pins.every(pin=>has(type,f=>f.PIN===String(pin)));
   const cases={
-    blink: () => has('esp_forever')&&has('esp_output',f=>f.PIN==='2'&&f.VALUE==='1')&&has('esp_output',f=>f.PIN==='2'&&f.VALUE==='0')&&nodes.filter(n=>n.type==='esp_wait'&&n.fields.MS==='200').length>=2,
+    blink: () => has('esp_forever')&&[2,26].some(pin=>has('esp_output',f=>f.PIN===String(pin)&&f.VALUE==='1')&&has('esp_output',f=>f.PIN===String(pin)&&f.VALUE==='0'))&&nodes.filter(n=>n.type==='esp_wait'&&n.fields.MS==='200').length>=2,
     traffic:()=> has('esp_forever')&&every('esp_output',[13,14,17])&&has('esp_wait'),
     button:()=>has('esp_forever')&&has('esp_button_if',f=>f.PIN==='18')&&nodes.some(n=>n.type==='esp_button_if'&&(n.children||[]).some(x=>x.type==='esp_output'&&x.fields.PIN==='2'&&x.fields.VALUE==='1')),
     adc:()=>has('esp_forever')&&has('esp_adc',f=>f.PIN==='34')&&has('esp_wait',f=>f.MS==='500'),
