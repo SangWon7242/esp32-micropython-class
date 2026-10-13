@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {parseMicroPython,DEFAULT_CODE} from '../src/parser.mjs';
+assert.equal(parseMicroPython(DEFAULT_CODE)[0].type, 'esp_forever');
+assert.equal(parseMicroPython(DEFAULT_CODE)[0].children.length,4);
+assert.equal(parseMicroPython('from machine import Pin\nif Pin(18, Pin.IN, Pin.PULL_UP).value() == 0:\n    Pin(2, Pin.OUT).value(1)')[0].children[0].type,'esp_output');
+assert.equal(parseMicroPython('from machine import Pin, ADC\nprint(ADC(Pin(34)).read_u16())')[0].type, 'esp_adc');
+assert.equal(parseMicroPython('from machine import Pin, PWM\nPWM(Pin(18), freq=1000, duty_u16=32768)')[0].type, 'esp_pwm');
+assert.equal(parseMicroPython('from machine import Pin\nimport dht\nsensor = dht.DHT11(Pin(4))\nsensor.measure()\nprint(sensor.temperature())')[0].type, 'esp_dht');
+assert.equal(parseMicroPython('from machine import Pin\nimport neopixel\nnp = neopixel.NeoPixel(Pin(5), 8)\nnp.fill((255, 0, 0))\nnp.write()')[0].fields.COLOR,'RED');
+assert.throws(()=>parseMicroPython('exec("something")'),/지원하지 않는 문법/);
+assert.throws(()=>parseMicroPython('Pin(34, Pin.OUT).value(1)'),/지원하지 않습니다/);
+assert.throws(()=>parseMicroPython('while True:\n  print("x")'),/들여쓰기/);
+console.log('parser tests: OK (9)');

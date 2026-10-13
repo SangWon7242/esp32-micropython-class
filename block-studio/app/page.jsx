@@ -1,0 +1,15 @@
+'use client';
+import Link from 'next/link';
+import {COURSES,courseProgress,allStages,getChapter} from '../src/curriculum';
+import {useProgress} from '../components/ProgressProvider';
+export default function Home(){
+ const {progress}=useProgress();const completed=allStages.filter(k=>progress.done[k]).length;
+ return <main className="site-body">
+  <section className="hero"><div className="hero-copy"><div className="eyebrow">CODE. CONNECT. CREATE.</div><h1>블록을 연결하면,<br/><span>진짜 세상이 움직여요.</span></h1><p>ESP32를 블록으로 움직이고, 생성되는 MicroPython을 읽으며 배우는 단계별 피지컬 컴퓨팅 수업.</p><div className="hero-buttons"><Link className="action primary" href="/course/foundation">학습 시작하기 ↗</Link><a className="action light" href="https://docs.keyestudio.com/projects/KS5020/en/latest/docs/2.%20MicroPython_Tutorial.html" target="_blank" rel="noreferrer">Keyestudio 원본 참고 ↗</a></div></div><div className="hero-graphic"><div className="mini-board"><div className="mini-chip">ESP32</div><div className="pin-dots">● ● ● ● ● ●</div></div><div className="code-float">while True:<br/>　led.value(1)<br/>　sleep(1)</div><div className="block-float">↳ LED 켜기<br/>↳ 1초 기다리기</div></div></section>
+  <section className="progress-strip"><div><span className="overline">나의 학습 진행</span><strong>{completed} <small>/ {allStages.length} 단계 완료</small></strong></div><div className="progress-track"><div style={{width:`${Math.round(completed/allStages.length*100)}%`}}/></div><span className="progress-percent">{Math.round(completed/allStages.length*100)}%</span></section>
+  <div className="section-heading"><div><span className="overline">LEARNING PATHS</span><h2>학습 과정 선택</h2></div><p>각 챕터에서 작은 미션을 하나씩 풀며 블록에서 MicroPython으로 나아갑니다.</p></div>
+  <div className="course-grid">{COURSES.map((course,i)=>{const p=courseProgress(course,progress.done);return <Link href={`/course/${course.id}`} key={course.id} className="course-card"><div className="course-card-head"><span className="course-number">{course.eyebrow}</span><span className="course-badge" style={{background:course.color+'1c',color:course.color}}>{course.badge}</span></div><div className="course-illustration" style={{background:i===0?'#eff4ff':'#e9faf5'}}><span>{i===0?'◉':'◈'}</span><div className="decor-lines">{i===0?'GPIO 26 → HIGH':'ADC 34 → 32768'}</div></div><h3>{course.title}</h3><p>{course.subtitle}</p><div className="course-progress"><div className="progress-track"><div style={{width:`${p.finished/p.total*100}%`,background:course.color}}/></div><small>{p.finished} / {p.total} 미션 완료</small></div><div className="course-footer"><span>{course.lessons.length}개 챕터 · {p.total}단계</span><strong>학습하러 가기 →</strong></div></Link>})}</div>
+  <section className="feature-bottom"><div><strong>01</strong><span>단계별 학습</span><small>개념에서 도전까지</small></div><div><strong>02</strong><span>양방향 코드 변환</span><small>블록 ↔ MicroPython</small></div><div><strong>03</strong><span>실물 ESP32 제어</span><small>USB 실험 기능</small></div></section>
+  <footer className="footer">KS5020 공식 교안을 참고해 독립적으로 재구성한 교육용 프로토타입 · 학생 진도는 이 브라우저에 저장됩니다.</footer>
+ </main>
+}
