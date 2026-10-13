@@ -1,0 +1,40 @@
+name: ESP32 Block Studio Checks
+on:
+  push:
+    branches: [feature/nextjs-block-studio-curriculum]
+    paths: ['block-studio/**', '.github/workflows/block-studio.yml']
+  pull_request:
+    paths: ['block-studio/**', '.github/workflows/block-studio.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: block-studio
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install packages
+        run: npm install --no-audit --no-fund
+      - name: Unit, serial protocol and curriculum tests
+        run: npm test
+      - name: Next.js production build
+        run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: UI journey smoke tests
+        run: npm run test:e2e
+      - name: Upload UI failures
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: block-studio-playwright-report
+          path: |
+            block-studio/playwright-report
+            block-studio/test-results
+          retention-days: 7
