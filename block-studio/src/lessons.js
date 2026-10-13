@@ -10,8 +10,8 @@ export const LESSONS = [
     reference: 'KS5020 2-3-01 · Hello, LED!', concept: '디지털 출력 · 반복 · 시간',
     question: '왜 LED에 기다리기 블록을 넣어야 깜박일까요?',
     mission: '0.5초 간격으로 깜박이게 만든 다음, 0.2초로 바꿔 변화를 관찰하세요.',
-    wiring: ['외부 LED 양극(+) → 220~330Ω 저항 → GPIO2', 'LED 음극(-) → GND'],
-    warning: '일부 보드는 GPIO2에 내장 LED가 없습니다. 외부 LED로 실습하세요.',
+    wiring: ['외부 LED 양극(+) → 220Ω 저항 → GPIO26 (Keyestudio KS5020 공식 LED 실습)', 'LED 음극(-) → GND'],
+    warning: 'Keyestudio 공식 Hello LED는 외부 LED를 GPIO26에 연결합니다. 예전 v0.3 코드의 GPIO2와 다른 배선이므로 연결 핀을 먼저 확인하세요.',
     code: DEFAULT_CODE,
   },
   {
