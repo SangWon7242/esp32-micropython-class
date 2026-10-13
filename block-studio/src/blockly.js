@@ -42,6 +42,12 @@ export const TOOLBOX = {kind:'categoryToolbox',contents:[
   {kind:'category',name:'반복 · 조건',colour:260,contents:[{kind:'block',type:'esp_forever'},{kind:'block',type:'esp_repeat'},{kind:'block',type:'esp_button_if'},{kind:'block',type:'esp_wait'}]},
   {kind:'category',name:'데이터',colour:215,contents:[{kind:'block',type:'esp_print'}]},
 ]};
+/** Limit early-stage toolbox to the commands needed for that mission. */
+export function toolboxFor(allowedBlocks) {
+  if(!allowedBlocks || !allowedBlocks.length)return TOOLBOX;
+  const allow=new Set(allowedBlocks);
+  return {...TOOLBOX,contents:TOOLBOX.contents.map(category=>({...category,contents:category.contents.filter(item=>allow.has(item.type))})).filter(category=>category.contents.length>0)};
+}
 export function toMicroPython(workspace, pythonGenerator) {
   const body=pythonGenerator.workspaceToCode(workspace).trimEnd();
   const machine='from machine import Pin'+(body.includes('ADC(')?', ADC':'')+(body.includes('PWM(')?', PWM':'');
