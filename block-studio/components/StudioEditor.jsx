@@ -5,7 +5,7 @@ import {Esp32Serial} from '../src/serial';
 
 export default function StudioEditor({initialCode,onChange,mode='hybrid',allowedBlocks=null}) {
   const host=useRef(null), active=useRef(null), serial=useRef(null),onChangeRef=useRef(onChange),delay=useRef(null),lock=useRef(false);
-  const [code,setCode]=useState(initialCode),[status,setStatus]=useState('편집기 준비 중…'),[terminal,setTerminal]=useState('[ESP32] 블록과 Python을 양방향으로 연결합니다.\n'),[connected,setConnected]=useState(false),[busy,setBusy]=useState(false);
+  const [code,setCode]=useState(initialCode),[status,setStatus]=useState('편집기 준비 중…'),[terminal,setTerminal]=useState('[ESP32] 블록과 Python을 양방향으로 연결합니다.\n'),[connected,setConnected]=useState(false),[busy,setBusy]=useState(false),[deviceState,setDeviceState]=useState('disconnected');
   onChangeRef.current=onChange;
   const append=useCallback(message=>setTerminal(old=>(old+message).slice(-18000)),[]);
   useEffect(()=>{
@@ -49,7 +49,7 @@ export default function StudioEditor({initialCode,onChange,mode='hybrid',allowed
     },500);
   };
   const connect=async()=>{
-    try {const instance=new Esp32Serial(append);await instance.connect();serial.current=instance;setConnected(true);append('[USB] 115200bps 연결 완료.\n');}
+    try {const instance=new Esp32Serial(append,state=>{setDeviceState(state);if(state==='disconnected'){setConnected(false);if(!instance.closing)void instance.disconnect().catch(()=>{});}});await instance.connect();serial.current=instance;setConnected(true);}
     catch(err){append(`[USB] ${err.message}\n`);}
   };
   const run=async()=>{
@@ -57,9 +57,9 @@ export default function StudioEditor({initialCode,onChange,mode='hybrid',allowed
     setBusy(true);
     try {
       parseMicroPython(code); // fail closed: never send unrecognized code
-      append('\n[실행] 실험적 REPL 전송 시작. 장치에 연결된 회로를 확인하세요.\n');
+      append('\n[실행] MicroPython raw-paste 전송 시작. 장치 회로를 확인하세요.\n');
       await serial.current.run(code);
-      append('[실행] 전송 요청 완료. 실제 장치 실행 여부는 시리얼 출력을 확인하세요.\n');
+      append('[실행] 장치가 코드 수신을 확인했습니다. 실제 센서의 움직임은 직접 관찰하세요.\n');
     }catch(err){append(`[실행 실패] ${err.message}\n`);}finally{setBusy(false);}
   };
   const stop=async()=>{try{await serial.current?.stop();append('[중지] Ctrl-C 명령 전송.\n');}catch(err){append(`[중지 오류] ${err.message}\n`);}};
@@ -74,13 +74,13 @@ export default function StudioEditor({initialCode,onChange,mode='hybrid',allowed
       <textarea className="python-code" spellCheck="false" readOnly={mode==='blocks'} aria-label="MicroPython 코드" value={code} onChange={e=>textEdited(e.target.value)}/>
       <p className="editor-status">{status}</p>
       <div className="terminal-bar"><span>시리얼 모니터</span><button className="small-button" onClick={()=>setTerminal('')}>지우기</button></div>
-      <pre className="terminal" aria-live="polite">{terminal}</pre>
+      <pre className="terminal" aria-live="polite">{terminal}</pre><div className="device-state" role="status">ESP32 연결 상태: {deviceState==='disconnected'?'연결 안 됨':deviceState==='connected'?'USB 연결됨':deviceState==='uploading'?'코드 전송 중':deviceState==='running'?'장치 코드 수신 확인 · 관찰 필요':deviceState}</div>
       <div className="device-controls">
         {!connected ? <button className="action subtle" onClick={connect}>USB 연결 (Chrome/Edge)</button> : <button className="action subtle" onClick={disconnect}>연결 해제</button>}
         <button className="action primary" onClick={run} disabled={!connected||busy}>▶ 실행</button>
-        <button className="action subtle" onClick={stop} disabled={!connected||busy}>■ 중지</button>
+        <button className="action subtle" onClick={stop} disabled={!connected}>■ 중지 / 복구</button>
       </div>
-      <p className="hardware-note">USB 전송은 실험 기능입니다. Chrome/Edge의 HTTPS 또는 localhost와 MicroPython 펌웨어가 필요합니다. 실제 보드 작동은 별도 확인하세요.</p>
+      <p className="hardware-note">MicroPython raw-paste 지원 펌웨어 필요 · PC Chrome/Edge HTTPS 또는 localhost 전용 · 업로드 완료와 실제 LED/센서 동작은 다릅니다. 전송 전에 배선과 3.3V 정격을 확인하세요.</p>
     </div>
   </div>;
 }
