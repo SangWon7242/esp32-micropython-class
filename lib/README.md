@@ -27,7 +27,9 @@ curl -L -o Library.zip "https://docs.keyestudio.com/projects/KS5020/en/latest/_d
 | 08 출입통제 | `mfrc522_i2c.py` · `mfrc522_config.py` · `soft_iic.py` |
 | 09 OLED 출입화면 | 위 3개 + `ssd1306.py` · `gfx.py` |
 | 10 자동문 | `ssd1306.py` |
-| 11 내 방 컨트롤러 | `keypad.py` · `irrecvdata.py` · `ssd1306.py` |
+| 12 리모컨 선풍기 | `irrecvdata.py` |
+| 13 바람 세기 | `irrecvdata.py` · `ssd1306.py` |
+| 14 내 방 컨트롤러 | `keypad.py` · `irrecvdata.py` · `ssd1306.py` |
 
 ### ⚠️ RFID는 파일 3개가 한 세트입니다
 
